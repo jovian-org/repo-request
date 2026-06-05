@@ -1,0 +1,153 @@
+# Workflow to create approve / reject request.
+# Check for if approver is authorized 
+
+# Workflow name shown in the GitHub Actions UI
+name: Repository Request Approval
+
+on:
+  issue_comment:
+    # Trigger when a new issue comment is created
+    types: [created]
+
+# Permissions granted to this workflow
+permissions:
+  issues: write      # Allows the workflow to update issue labels
+  contents: read     # Allows the workflow to read repository files
+
+jobs:
+  process-request:
+
+    # Run only for issue comments (not pull request comments)
+    # that start with /approve or /reject
+    if: |
+      github.event.issue.pull_request == null &&
+      (
+        startsWith(github.event.comment.body, '/approve') ||
+        startsWith(github.event.comment.body, '/reject')
+      )
+
+    # Use a GitHub-hosted Ubuntu runner
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Download repository contents so approvers.yml is available
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Install Python on the runner
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Install YAML parsing library
+      - name: Install dependencies
+        run: |
+          pip install pyyaml
+
+      # Store whether the command is approve or reject
+      - name: Determine command
+        id: command
+        run: |
+          COMMENT="${{ github.event.comment.body }}"
+
+          if [[ "$COMMENT" == /approve* ]]; then
+            echo "action=approve" >> $GITHUB_OUTPUT
+          elif [[ "$COMMENT" == /reject* ]]; then
+            echo "action=reject" >> $GITHUB_OUTPUT
+          else
+            exit 1
+          fi
+
+      # Verify the commenter is listed in config/approvers.yml
+      - name: Verify approver
+        env:
+          COMMENTER: ${{ github.event.comment.user.login }}
+        run: |
+          python <<'PY'
+          import os
+          import sys
+          import yaml
+
+          commenter = os.environ["COMMENTER"]
+
+          with open("config/approvers.yml", "r", encoding="utf-8") as f:
+              cfg = yaml.safe_load(f)
+
+          users = set(
+              cfg.get("approvers", {}).get("users", [])
+          )
+
+          if commenter not in users:
+              print(f"Unauthorized approver: {commenter}")
+              sys.exit(1)
+
+          print(f"Authorized approver: {commenter}")
+          PY
+
+      # Ensure the request has already passed validation
+      - name: Check request state
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = context.payload.issue.labels.map(
+              label => label.name
+            );
+
+            if (!labels.includes('pending-approval')) {
+              core.setFailed(
+                'Request is not awaiting approval.'
+              );
+            }
+
+      # Approve the request
+      - name: Approve request
+        if: steps.command.outputs.action == 'approve'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue_number = context.issue.number;
+
+            await github.rest.issues.removeLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number,
+              name: 'pending-approval'
+            }).catch(() => {});
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number,
+              labels: ['approved']
+            });
+
+      # Reject the request
+      - name: Reject request
+        if: steps.command.outputs.action == 'reject'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue_number = context.issue.number;
+
+            await github.rest.issues.removeLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number,
+              name: 'pending-approval'
+            }).catch(() => {});
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number,
+              labels: ['rejected']
+            });
+
+      # Print useful debugging information
+      - name: Debug output
+        run: |
+          echo "Commenter: ${{ github.event.comment.user.login }}"
+          echo "Command: ${{ steps.command.outputs.action }}"
+          echo "Issue: ${{ github.event.issue.number }}"

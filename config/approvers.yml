@@ -1,0 +1,9 @@
+# DEFINES: who can approve
+
+
+approvers:
+  teams:
+    - platform-team
+    - devops-team
+  users:
+    - octocat

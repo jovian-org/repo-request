@@ -1,0 +1,110 @@
+# Workflow to validate request according to policy.
+# Request will only be passed on to the next workflow for approval if this workflow passes.
+
+# Workflow name shown in the GitHub Actions UI
+name: Validate Repository Request
+
+on:
+  issues:
+    # Run when an issue is created, edited, or reopened
+    types: [opened, edited, reopened]
+
+# Permissions granted to this workflow
+permissions:
+  issues: write      # Allows the workflow to update issue labels
+  contents: read     # Allows the workflow to read repository files
+
+jobs:
+  validate:
+
+    # Run only for issues, not pull requests
+    if: github.event.issue.pull_request == null
+
+    # Use a GitHub-hosted Ubuntu runner
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # Download repository contents so scripts and config files are available
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Install Python on the runner
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Install YAML parsing library
+      - name: Install dependencies
+        run: |
+          pip install pyyaml
+
+      # Save the GitHub issue body into a temporary file
+      - name: Extract issue body
+        run: |
+          cat <<'EOF' > issue_body.txt
+          ${{ github.event.issue.body }}
+          EOF
+
+      # Convert the issue body into request.yml
+      - name: Parse request
+        run: python scripts/parse_issue.py issue_body.txt request.yml
+
+      # Run policy validation against the parsed request
+      - name: Validate request
+        id: validate
+        continue-on-error: true
+        run: python scripts/validate_request.py request.yml config/policy.yml
+
+      # Remove any previous needs-changes label
+      # and mark the request as ready for approval
+      - name: Mark request ready
+        if: steps.validate.outcome == 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue_number = context.issue.number;
+
+            await github.rest.issues.removeLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number,
+              name: 'needs-changes'
+            }).catch(() => {});
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number,
+              labels: ['pending-approval']
+            });
+
+      # Remove any previous pending-approval label and indicate that the request requires corrections
+      - name: Mark request needs changes
+        if: steps.validate.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue_number = context.issue.number;
+
+            await github.rest.issues.removeLabel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number,
+              name: 'pending-approval'
+            }).catch(() => {});
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number,
+              labels: ['needs-changes']
+            });
+
+      # Print useful debugging information
+      - name: Debug output
+        run: |
+          echo "Issue: ${{ github.event.issue.number }}"
+          echo "Validation outcome: ${{ steps.validate.outcome }}"
+```

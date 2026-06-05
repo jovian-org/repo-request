@@ -1,0 +1,27 @@
+# DEFINES: what is allowed
+# validate_request.py compares request.yml with policy.yml to validate the request
+
+requesters:
+  allowed_groups:
+    - org-members
+
+repository:
+  naming:
+
+    # Repository names must contain lowercase letters and digits, optionally contain 
+    # hyphens and not start/end with a hyphen
+    pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+
+  visibility:
+    allowed:
+      - private
+      - internal
+  owner_team_allowlist:
+    - platform-team
+    - devops-team
+    - data-platform
+
+governance:
+
+  # Org owners must follow these rules too
+  org_owners_exempt: false

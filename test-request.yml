@@ -1,0 +1,9 @@
+repo_name: inventory-service
+
+business_purpose: Internal inventory tracking service
+
+owner_team: platform-team
+
+visibility: private
+
+data_classification: internal
