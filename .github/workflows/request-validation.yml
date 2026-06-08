@@ -1,6 +1,8 @@
-# Workflow to validate request according to policy. Request will only be passed on to the next workflow for approval if this workflow passes.
+# 1. Parse request
+# 2. Validate policy
+# 3. Apply: pending-approval OR needs-changes
 
-name: Validate Repository Request
+name: Repository Request Validation
 
 on:
   issues:
@@ -46,32 +48,52 @@ jobs:
         uses: actions/github-script@v7  # Run JavaScript with authenticated GitHub API access to update the labels in Github
         with:
           script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
             const issue_number = context.issue.number;
+            const approver = 'octocat'; // MVP approver from config/approvers.yml
 
             await github.rest.issues.removeLabel({
-              owner: context.repo.owner, repo: context.repo.repo, issue_number, name: 'needs-changes'
+              owner, repo, issue_number, name: 'needs-changes'
             }).catch(() => {});
             // Remove any previous needs-changes label
 
             await github.rest.issues.addLabels({
-              owner: context.repo.owner, repo: context.repo.repo, issue_number, labels: ['pending-approval']
+              owner, repo, issue_number, labels: ['pending-approval']
             });
             // Mark the request as ready for approval
+
+            await github.rest.issues.addAssignees({
+              owner, repo, issue_number, assignees: [approver]
+            }).catch(() => {});
+            // Assign approver to the issue
+
+            await github.rest.issues.createComment({
+              owner, repo, issue_number, body: `@${approver} this request is ready for approval.`
+            });
+            // Send a notification to that user identified by the username
+
 
       - name: Mark request needs changes
         if: steps.validate.outcome == 'failure'
         uses: actions/github-script@v7
         with:
           script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
             const issue_number = context.issue.number;
 
             await github.rest.issues.removeLabel({
-              owner: context.repo.owner, repo: context.repo.repo, issue_number, name: 'pending-approval'
+              owner, repo, issue_number, name: 'pending-approval'
             }).catch(() => {});
 
             await github.rest.issues.addLabels({
-              owner: context.repo.owner, repo: context.repo.repo, issue_number, 
-              labels: ['needs-changes']
+              owner, repo, issue_number, labels: ['needs-changes']
+            });
+
+            await github.rest.issues.createComment({
+              owner, repo, issue_number, 
+              body: '❌ Validation failed. Please review the repository request and correct any policy violations, then edit the issue to trigger validation again.'
             });
 
       - name: Debug output

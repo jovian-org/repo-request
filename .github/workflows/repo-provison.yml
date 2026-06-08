@@ -1,0 +1,70 @@
+# 1. Parse request
+# 2. Create repository
+# 3. Apply: provisioned
+# 4. Notify requester
+
+name: Approved Repository Provision
+
+on:
+  issues:
+    types:
+      - labeled
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  provision:
+    if: |
+      github.event.issue.pull_request == null &&
+      github.event.label.name == 'approved'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install pyyaml pyjwt requests
+
+      - name: Extract issue body
+        run: |
+          cat <<'EOF' > issue_body.txt
+          ${{ github.event.issue.body }}
+          EOF
+
+      - name: Parse request
+        run: python scripts/parse_issue.py issue_body.txt request.yml
+
+      - name: Create repository
+        run: python scripts/create_repo.py request.yml
+
+      - name: Mark as provisioned
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = context.issue.number;
+
+            await github.rest.issues.removeLabel({
+              owner,
+              repo,
+              issue_number,
+              name: 'approved'
+            }).catch(() => {});
+
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number,
+              labels: ['provisioned']
+            });

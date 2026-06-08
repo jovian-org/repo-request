@@ -1,0 +1,118 @@
+# 1. Verify approver
+# 2. Verify issue state
+# 3. Apply: approved OR rejected
+# 4. Notify requester
+
+Apply:
+  approved
+  rejected
+Notify requester
+
+name: Repository Request Approval
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  process-request:
+    if: |
+      github.event.issue.pull_request == null && (
+        startsWith(github.event.comment.body, '/approve') ||
+        startsWith(github.event.comment.body, '/reject'))
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Determine command
+        id: command
+        run: |    # Store whether the command is approve or reject in 'steps.command.outputs.action'
+          COMMENT="${{ github.event.comment.body }}"
+
+          if [[ "$COMMENT" == /approve* ]]; then
+            echo "action=approve" >> $GITHUB_OUTPUT
+          elif [[ "$COMMENT" == /reject* ]]; then
+            echo "action=reject" >> $GITHUB_OUTPUT
+          else
+            exit 1
+          fi
+
+      - name: Verify approver
+        env:
+          COMMENTER: ${{ github.event.comment.user.login }}   # Stores the commenter's username as an environment variable
+        run: python scripts/verify_approver.py    # Verify the commenter is listed in config/approvers.yml
+
+      - name: Check request state
+        uses: actions/github-script@v7
+        with:   # Verify that the request has already passed validation and exit if it has not passed
+          script: |
+            const labels = context.payload.issue.labels.map(label => label.name);
+
+            if (!labels.includes('pending-approval')) {
+              core.setFailed('Request is not awaiting approval.');
+            }
+
+      - name: Approve request
+        if: steps.command.outputs.action == 'approve'
+        uses: actions/github-script@v7
+        with:   # Approve request
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = context.issue.number;
+            const requester = context.payload.issue.user.login;
+
+            await github.rest.issues.removeLabel({
+              owner,repo, issue_number, name: 'pending-approval'
+            }).catch(() => {});
+
+            await github.rest.issues.addLabels({
+              owner, repo, issue_number, labels: ['approved']
+            });
+
+            await github.rest.issues.createComment({
+              owner, repo, issue_number, body: `✅ @${requester} your repository request has been approved.`
+            });
+
+      - name: Reject request
+        if: steps.command.outputs.action == 'reject'
+        uses: actions/github-script@v7
+        with:   # Reject request
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = context.issue.number;
+            const requester = context.payload.issue.user.login;
+
+            await github.rest.issues.removeLabel({
+              owner, repo, issue_number, name: 'pending-approval'
+            }).catch(() => {});
+
+            await github.rest.issues.addLabels({
+              owner, repo, issue_number, labels: ['rejected']
+            });
+
+            await github.rest.issues.createComment({
+              owner, repo, issue_number, body: `❌ @${requester} your repository request has been rejected.`
+            });
+
+      - name: Debug output
+        run: |  # Print useful debugging information
+          echo "Commenter: ${{ github.event.comment.user.login }}"
+          echo "Command: ${{ steps.command.outputs.action }}"
+          echo "Issue: ${{ github.event.issue.number }}"

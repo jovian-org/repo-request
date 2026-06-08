@@ -13,6 +13,7 @@ def load_yaml(path):
     """
     with open(path, "r", encoding="utf-8") as f:
         # safe_load converts YAML into Python objects safely
+
         return yaml.safe_load(f)
     
 
@@ -54,6 +55,7 @@ def validate_request(request, policy):
         
         if allowed_teams and request["owner_team"] not in allowed_teams:
         # Only validate if a whitelist exists (empty list means "accept any team")
+        
             errors.append(
                 f"Owner team '{request['owner_team']}' is not recognized"
             )
