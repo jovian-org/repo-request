@@ -1,4 +1,6 @@
-# Parse a GitHub issue body into request.yml
+#!/usr/bin/env python3
+
+# Parse a GitHub issue body from issue_body.txt into request.yml
 
 import sys
 import yaml

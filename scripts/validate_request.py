@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-# Use Python 3 from the current environment when executing this script
 
-# Checks that a request has all the required fields stated in the policy.
+# Checks that a request from request.yml has all the required fields stated in config/policy
 
 import sys           # Access command-line arguments and exit codes
 import yaml          # Read and parse YAML files
@@ -23,7 +22,6 @@ def validate_request(request, policy):
     """
     errors = []
 
-    # Check that all required fields are present in the request
     required_fields = [
         "repo_name",
         "business_purpose",
@@ -32,39 +30,35 @@ def validate_request(request, policy):
         "data_classification"
     ]
     for field in required_fields:
-        if not request.get(field):
+        if not request.get(field):      # Check that all required fields are present in the request
             errors.append(f"Missing required field: {field}")
     if errors:
         return False, errors
     
-    # Validate repo name
     repo_name = request["repo_name"]
     pattern = policy["repository"]["naming"]["pattern"]
-    if not re.match(pattern, repo_name):
+    if not re.match(pattern, repo_name):        # Validate repo name
         errors.append(
             f"Repository name '{repo_name}' does not match naming policy"
         )
 
-    # Validate repo visibility
     allowed_visibility = policy["repository"]["visibility"]["allowed"]
-    if request["visibility"] not in allowed_visibility:
+    if request["visibility"] not in allowed_visibility:     # Validate repo visibility
         errors.append(
             f"Visibility '{request['visibility']}' is not allowed"
         )
 
-    # Validate owner team if the policy requires one
-    if policy["repository"]["owner_team_allowlist"]:
-        # Get list of allowed owner teams if configured
-        # If not present in the YAML, default to []
+    if policy["repository"]["owner_team_allowlist"]:    # Validate owner team if the policy requires one
         allowed_teams = policy["repository"].get("owner_team_allowlist", [])
-        # Only validate if a whitelist exists (empty list means "accept any team")
+        # Get list of allowed owner teams if configured. If not present in the YAML, default to []
+        
         if allowed_teams and request["owner_team"] not in allowed_teams:
+        # Only validate if a whitelist exists (empty list means "accept any team")
             errors.append(
                 f"Owner team '{request['owner_team']}' is not recognized"
             )
 
-    # Validation succeeds if no errors were collected
-    return len(errors) == 0, errors
+    return len(errors) == 0, errors     # Validation succeeds if no errors were collected
 
 
 def main():
@@ -86,36 +80,26 @@ def main():
             "Usage: validate_request.py <request.yml> <policy.yml>",
             file=sys.stderr
         )
-        # Exit code 2 = command usage error
-        sys.exit(2)
+        sys.exit(2)     # Exit code 2 = command usage error
 
-    # Convert command-line arguments into Path objects
-    request_path = Path(sys.argv[1])
+    request_path = Path(sys.argv[1])        # Convert command-line arguments into Path objects
     policy_path = Path(sys.argv[2])
 
-    # Load YAML files into Python dictionaries
-    request = load_yaml(request_path)
+    request = load_yaml(request_path)       # Load YAML files into Python dictionaries
     policy = load_yaml(policy_path)
 
-    # Run validation
-    ok, errors = validate_request(request, policy)
+    ok, errors = validate_request(request, policy)      # Run validation
 
-    # Validation passed
-    if ok:
+    if ok:      # Validation passed
         print("PASS")
-        # Exit code 0 = success
-        sys.exit(0)
+        sys.exit(0)     # Exit code 0 = success
 
-    # Validation failed
-    else:
+    else:       # Validation failed
         print("FAIL")
-        # Print each validation error
         for err in errors:
             print(f"- {err}")
-        # Exit code 1 = validation failure
-        sys.exit(1)
+        sys.exit(1)     # Exit code 1 = validation failure
 
 
-# Execute main() only when this file is run directly
-if __name__ == "__main__":
+if __name__ == "__main__":      # Execute main() only when this file is run directly
     main()

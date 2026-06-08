@@ -1,4 +1,5 @@
-# GitHub reads this YAML and generates a structured form when users create a new issue
+# repo-request.yml defines the form that GitHub shows when a user clicks "New Issue"
+
 
 name: Repository Request
 description: Request a new GitHub repository
