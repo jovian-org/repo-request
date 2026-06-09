@@ -36,18 +36,22 @@ jobs:
           pip install pyyaml pyjwt requests
 
       - name: Extract issue body
-        run: |
-          cat <<'EOF' > issue_body.txt
-          ${{ github.event.issue.body }}
-          EOF
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: printf '%s' "$ISSUE_BODY" > issue_body.txt
 
       - name: Parse request
         run: python scripts/parse_issue.py issue_body.txt request.yml
 
       - name: Create repository
-        run: python scripts/create_repo.py request.yml
+        id: create_repo
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          repo_url="$(python scripts/create_repo.py request.yml)"
+          echo "repo_url=$repo_url" >> "$GITHUB_OUTPUT"
 
-      - name: Mark as provisioned
+      - name: Add provisioned label
         uses: actions/github-script@v7
         with:
           script: |
@@ -55,16 +59,22 @@ jobs:
             const repo = context.repo.repo;
             const issue_number = context.issue.number;
 
-            await github.rest.issues.removeLabel({
-              owner,
-              repo,
-              issue_number,
-              name: 'approved'
-            }).catch(() => {});
-
             await github.rest.issues.addLabels({
-              owner,
-              repo,
-              issue_number,
-              labels: ['provisioned']
-            });
+              owner, repo, issue_number,labels: ['provisioned'],
+            })
+
+      - name: Comment requester
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const requester = context.payload.issue.user.login;
+            const repoUrl = "${{ steps.create_repo.outputs.repo_url }}";
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = context.issue.number;
+
+            await github.rest.issues.createComment({
+              owner, repo, issue_number, 
+              body: `@${requester} your repository has been provisioned: ${repoUrl}`
+            })

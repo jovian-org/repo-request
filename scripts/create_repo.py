@@ -1,70 +1,108 @@
-# Create a private repository using a GitHub App.
+"""
+Create a new private GitHub repository from a request file or repo name.
+"""
+"""
+Usage:
+    python scripts/create_repo.py request.yml
+    python scripts/create_repo.py my-new-repo
 
-import os
-import sys
-from pathlib import Path
+The script expects a fine-grained PAT in GH_PAT and uses the GitHub REST API
+endpoint POST /user/repos.
+"""
 
-import requests
-from dotenv import load_dotenv
+from __future__ import annotations      # for type hints flexibility
 
-# Helper for GitHub App authentication.
-from github_auth import get_installation_token
+import sys      # for exiting with a status code
+from pathlib import Path        # for filesystem paths
+from typing import Any, Dict, Tuple # type hints
 
-load_dotenv()
+import requests     # for sending HTTP requests to GitHub
+import yaml     # for reading request.yml file
 
-def create_repository(repo_name: str) -> str:
-    """Create a private GitHub repository and return its URL."""
+from github_auth import GitHubAuthError, get_github_headers
 
-    # Read GitHub App credentials from environment variables.
-    app_id = os.environ["GH_APP_ID"]
-    installation_id = os.environ["GH_APP_INSTALLATION_ID"]
-    private_key = os.environ["GH_APP_PRIVATE_KEY"]
+GITHUB_API_URL = "https://api.github.com/user/repos"    # GitHub endpoint to create repo under authenticcated user
 
-    # Read the PEM key from file.
-    with open(Path(private_key), "r", encoding="utf-8") as f:
-        private_key = f.read()
 
-    # Get a temporary token for the App installation.
-    token = get_installation_token(app_id, installation_id, private_key)
+class RepoProvisionError(RuntimeError):
+    """Raised when repository provisioning fails."""
 
-    # Create the repository under the authenticated account.
-    response = requests.post(
-        "https://api.github.com/user/repos",
-        headers={
-            "Authorization": f"token {token}",
-            "Accept": "application/vnd.github+json",
-        },
-        json={
-            "name": repo_name,
-            "private": True,
-            "auto_init": True,
-        },
-        timeout=30,
-    )
 
-    print(response.status_code)
-    print(response.text)
-    print(response.headers.get("X-Accepted-GitHub-Permissions"))
+def load_request_data(arg: str) -> Dict[str, Any]:
+    """
+    Load request data from a YAML file path or treat the argument as a raw repo name.
+    """
+    candidate = Path(arg)
 
-    # Stop immediately if GitHub rejects the request.
-    response.raise_for_status()
+    if candidate.exists() and candidate.is_file():
+        with candidate.open("r", encoding="utf-8") as fh:
+            data = yaml.safe_load(fh) or {}
+        if not isinstance(data, dict):
+            raise RepoProvisionError("Request YAML must contain a mapping/object.")
+        return data
 
-    # Return the repository URL from the API response.
-    return response.json()["html_url"]
+    return {"repo_name": arg}
+
+
+def extract_repo_name(request: Dict[str, Any]) -> str:
+    """
+    Extract and validate the repository name from the request payload.
+    """
+    repo_name = request.get("repo_name")
+    if not isinstance(repo_name, str) or not repo_name.strip():
+        raise RepoProvisionError("Missing required field: repo_name")
+    return repo_name.strip()
+
+
+def create_repository(repo_name: str) -> Tuple[str, str]:
+    """
+    Create the repository and return (html_url, full_name).
+    """
+    headers = get_github_headers()      # headers to attach to the API request
+    payload = {
+        "name": repo_name,      # uses the repo name from the request
+        "private": True,        # create a private repository
+        "auto_init": True,      # create an initial commit and README
+    }
+
+    try:
+        response = requests.post(       # Send an HTTP POST request to create
+            GITHUB_API_URL,    # GitHub endpoint for creating repo
+            headers=headers,    # attach authentication headers
+            json=payload,       # send the payload as JSON
+            timeout=30      # wait at most 30 seconds
+            )
+        response.raise_for_status()     # Raise an exception if there is an error
+    except requests.HTTPError as exc:       # Catch GitHub API errors
+        detail = ""
+        try:
+            detail = response.json().get("message", "")
+        except Exception:
+            detail = response.text.strip()
+        raise RepoProvisionError(
+            f"GitHub API rejected repository creation for '{repo_name}'. {detail}"
+        ) from exc
+    except requests.RequestException as exc:        # Catch lower-level problems
+        raise RepoProvisionError(f"Failed to contact GitHub API: {exc}") from exc
+
+    data = response.json()
+    html_url = data.get("html_url")
+    full_name = data.get("full_name")
+
+    if not html_url or not full_name:
+        raise RepoProvisionError("GitHub API response did not include repository details.")
+
+    return html_url, full_name
 
 
 def main() -> None:
-    """
-    Expected usage: python scripts/create_repo.py issueops-test-repo
-    """
-
-    # Expect exactly one argument: the repository name.
     if len(sys.argv) != 2:
-        print("Usage: python scripts/create_repo.py <repository-name>")
-        sys.exit(1)
+        raise RepoProvisionError("Usage: python scripts/create_repo.py request.yml")
 
-    repo_url = create_repository(sys.argv[1])
-    print(repo_url)
+    request = load_request_data(sys.argv[1])
+    repo_name = extract_repo_name(request)
+    html_url, _ = create_repository(repo_name)
+    print(html_url)
 
 
 if __name__ == "__main__":

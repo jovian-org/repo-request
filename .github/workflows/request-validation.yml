@@ -58,7 +58,7 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const issue_number = context.issue.number;
-            const approver = 'octocat'; // MVP approver from config/approvers.yml
+            const approver = 'jovianheok'; // MVP approver from config/approvers.yml
 
             await github.rest.issues.removeLabel({
               owner, repo, issue_number, name: 'needs-changes'

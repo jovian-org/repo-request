@@ -1,4 +1,4 @@
-# GitHub-recognized Directory and their uses
+# Learning Point: GitHub-recognized Directory and their uses
 
 .github/workflows/ -> GitHub Actions automation\
 .github/ISSUE_TEMPLATE/ -> Issue Forms and Issue Templates\
@@ -11,7 +11,7 @@
 .github/CONTRIBUTING.md -> Displayed when users create Issues or Pull Requests
 
 
-# GitHub Workflow File
+# Learning Point: GitHub Workflow File
 
 Has 3 main parts\
     1. name: human-readable name shown in GitHub Actions\
@@ -21,27 +21,27 @@ Has 3 main parts\
 Independent event-driven workflows: Each one runs only when its own trigger matches
 
 
-# GitHub Workflow Job
+# Learning Point: GitHub Workflow Job
 
 run -> tell GitHub exactly what command to execute\
 uses -> tell GitHub to execute a prebuilt Action
 
-# Command-Line Tool
+# Learning Point: Command-Line Tool
 git clone ...\
 docker build ...\
 python parse_issue.py ...
 
-# API
+# Learning Point: API
 
 Application Programming Interface is a way for one program to ask another program to do something. E.g. instead of clicking buttons in the GitHub website, your code sends a request to GitHub.
 
 
-# REST API
+# Learning Point: REST API
 
 REST is a style of web API where everything is accessed through URLs and HTTP methods. Each resource (repository, issue, pull request, label, user) has a URL.
 
 
-# HTTP Methods
+# Learning Point: HTTP Methods
 
 GET = Read\
 e.g. GET /repos/jovianheok/repo-requests/issues/23 = Give me Issue #23
@@ -56,11 +56,17 @@ DELETE = Remove\
 e.g. DELETE /repos/jovianheok/repo-requests/issues/23/labels/needs-changes = Remove the label needs-changes
 
 
+# Learning Point: GitHub Actions Authentication and PATs
+
+GitHub authenticates API requests based on the PAT attached to the request, not based on where the workflow is hosted.
+
 # SHEBANG
+
 A shebang tells the operating system which interpreter should run a script when the script is executed directly e.g. #!/usr/bin/python3
 
 
 # TRIGGER FOR EACH WORKFLOW
+
 request-validation:\
     User creates issue\
     User edits issue\
