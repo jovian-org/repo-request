@@ -100,4 +100,3 @@ jobs:
         run: |    # Print useful debugging information
           echo "Issue: ${{ github.event.issue.number }}"
           echo "Validation outcome: ${{ steps.validate.outcome }}"
-```

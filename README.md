@@ -1,59 +1,59 @@
 # GitHub-recognized Directory and their uses
 
-.github/workflows/ -> GitHub Actions automation
-.github/ISSUE_TEMPLATE/ -> Issue Forms and Issue Templates
-.github/PULL_REQUEST_TEMPLATE.md -> Default Pull Request template
-.github/CODEOWNERS -> Automatic reviewer assignment
-.github/dependabot.yml -> Automated dependency updates
-.github/FUNDING.yml -> Sponsorship links for open-source projects
-.github/SECURITY.md -> Tells researchers how to report vulnerabilities and security support policy
-.github/SUPPORT.md -> Explains where to ask questions and how to get help
-.github/CONTRIBUTING.md -> Displayed when users create Issues or Pull Requests
+.github/workflows/ -> GitHub Actions automation\
+.github/ISSUE_TEMPLATE/ -> Issue Forms and Issue Templates\
+.github/PULL_REQUEST_TEMPLATE.md -> Default Pull Request template\
+.github/CODEOWNERS -> Automatic reviewer assignment\
+.github/dependabot.yml -> Automated dependency updates\
+.github/FUNDING.yml -> Sponsorship links for open-source projects\
+.github/SECURITY.md -> Tells researchers how to report vulnerabilities and security support policy\
+.github/SUPPORT.md -> Explains where to ask questions and how to get help\
+.github/CONTRIBUTING.md -> Displayed when users create Issues or Pull Requests\
 
 
 # GitHub Workflow File
 
-Has 3 main parts
-    1. name: human-readable name shown in GitHub Actions
-    2. on: defines the event that triggers the workflow
-    3. jobs: the work to perform
+Has 3 main parts\
+    1. name: human-readable name shown in GitHub Actions\
+    2. on: defines the event that triggers the workflow\
+    3. jobs: the work to perform\
 
-Independent event-driven workflows
-    Each one runs only when its own trigger matches
+Independent event-driven workflows\
+    Each one runs only when its own trigger matches\
 
 
 # GitHub Workflow Job
 
-run -> tell GitHub exactly what command to execute
-uses -> tell GitHub to execute a prebuilt Action
+run -> tell GitHub exactly what command to execute\
+uses -> tell GitHub to execute a prebuilt Action\
 
 # Command-Line Tool
-git clone ...
-docker build ...
-python parse_issue.py ...
+git clone ...\
+docker build ...\
+python parse_issue.py ...\
 
 # API
 
-Application Programming Interface is a way for one program to ask another program to do something. E.g. instead of clicking buttons in the GitHub website, your code sends a request to GitHub.
+Application Programming Interface is a way for one program to ask another program to do something. E.g. instead of clicking buttons in the GitHub website, your code sends a request to GitHub.\
 
 
 # REST API
 
-REST is a style of web API where everything is accessed through URLs and HTTP methods. Each resource (repository, issue, pull request, label, user) has a URL.
+REST is a style of web API where everything is accessed through URLs and HTTP methods. Each resource (repository, issue, pull request, label, user) has a URL.\
 
 
 # HTTP Methods
 
-GET = Read
+GET = Read\
 e.g. GET /repos/jovianheok/repo-requests/issues/23 = Give me Issue #23
 
-POST = Create
+POST = Create\
 e.g. POST /repos/jovianheok/repo-requests/issues/23/labels = Add/create labels on Issue #23
 
-PATCH = Update
+PATCH = Update\
 e.g. PATCH /repos/jovianheok/repo-requests/issues/23 = Update Issue #23
 
-DELETE = Remove
+DELETE = Remove\
 e.g. DELETE /repos/jovianheok/repo-requests/issues/23/labels/needs-changes = Remove the label needs-changes
 
 
@@ -62,19 +62,19 @@ A shebang tells the operating system which interpreter should run a script when 
 
 
 # TRIGGER FOR EACH WORKFLOW
-request-validation: 
-    User creates issue
-    User edits issue
-    User reopens issue
+request-validation:\
+    User creates issue\
+    User edits issue\
+    User reopens issue\
 
-request-approval:
-    Comment created on an issue
+request-approval:\
+    Comment created on an issue\
 
-repo-provision:
-    Label added to an issue
+repo-provision:\
+    Label added to an issue\
 
 
-# ISSUE CREATION PROCESS
+# ISSUE CREATION
 
 1. User clicks "New Issue"
 2. GitHub reads .github/ISSUE_TEMPLATE/repo-request.yml
@@ -84,7 +84,7 @@ repo-provision:
 6. GitHub creates a normal Issue with the form responses in the issue body and stores it as Markdown
 
 
-# ISSUE PARSING and VALIDATION WORKFLOW (request-validation.yml)
+# ISSUE PARSING and VALIDATION (request-validation.yml)
 
 1. When an Issue is opened, GitHub starts validate-request.yml workflow
 2. Workflow extracts the issue body
@@ -94,7 +94,7 @@ repo-provision:
 6. If 'need-changes', it will create an Issue Comment to notify the requestor of the errors.
 
 
-# ISSUE APPROVAL PROCESS (request-approval.yml)
+# ISSUE APPROVAL (request-approval.yml)
 
 1. Workflow receives a 'pending-approval' request and notifies approver
 2. Approver comments which creates an Issue Comment (each comment starts a workflow)
@@ -105,7 +105,7 @@ repo-provision:
 7. If Comment = /reject AND User is approver, 'rejected' label is applied
 
 
-# REPO PROVISION PROCESS (repo-provision.yml)
+# REPO PROVISION (repo-provision.yml)
 
 1.
 2.

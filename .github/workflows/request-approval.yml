@@ -3,11 +3,6 @@
 # 3. Apply: approved OR rejected
 # 4. Notify requester
 
-Apply:
-  approved
-  rejected
-Notify requester
-
 name: Repository Request Approval
 
 on:

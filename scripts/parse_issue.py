@@ -15,17 +15,14 @@ def parse_issue_body(text):
 
     for line in text.splitlines():
         line = line.strip()
-
-        # Ignore blank lines
+        
         if not line:
-            continue
+            continue        # Ignore blank lines
 
-        # Ignore malformed lines
         if ":" not in line:
-            continue
+            continue        # Ignore malformed lines
 
-        # Split only on the first colon
-        key, value = line.split(":", 1)
+        key, value = line.split(":", 1)     # Split only on the first colon
 
         data[key.strip()] = value.strip()
 
@@ -47,21 +44,14 @@ def main():
 
     input_file = sys.argv[1]
     output_file = sys.argv[2]
-
-    # Read issue body extracted from GitHub
+    
     with open(input_file, "r", encoding="utf-8") as f:
-        issue_body = f.read()
+        issue_body = f.read()       # Read issue body extracted from GitHub
 
-    # Convert issue text into a dictionary
-    request = parse_issue_body(issue_body)
+    request = parse_issue_body(issue_body)      # Convert issue text into a dictionary
 
-    # Write structured YAML for the validator
     with open(output_file, "w", encoding="utf-8") as f:
-        yaml.safe_dump(
-            request,
-            f,
-            sort_keys=False
-        )
+        yaml.safe_dump(request, f, sort_keys=False)     # Write structured YAML for the validator
 
     print(f"Request written to {output_file}")
 
