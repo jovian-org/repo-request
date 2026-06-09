@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
-# Checks that a request from request.yml has all the required fields stated in config/policy
+"""
+Checks that a request from request.yml has all the required fields stated in config/policy
+"""
 
 import sys           # Access command-line arguments and exit codes
 import yaml          # Read and parse YAML files

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
-# Verifies that the commenter is an authoried approver against config/approvers.yml
+"""
+Verifies that the commenter is an authoried approver against config/approvers.yml
+"""
 
 import os
 import sys
