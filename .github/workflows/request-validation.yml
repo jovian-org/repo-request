@@ -38,6 +38,11 @@ jobs:
         run: python scripts/parse_issue.py issue_body.txt request.yml 
         # Convert the issue body into request.yml using Python CLI Tool
 
+      - name: Show parsed request
+        run: |
+          echo "===== REQUEST ====="
+          cat request.yml
+
       - name: Validate request
         id: validate    # lets later steps inspect the validation result
         continue-on-error: true
