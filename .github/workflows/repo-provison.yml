@@ -15,10 +15,6 @@ permissions:
 
 jobs:
   provision:
-    if: |
-      github.event.issue.pull_request == null &&
-      github.event.label.name == 'approved'
-
     runs-on: ubuntu-latest
 
     steps:
