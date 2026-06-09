@@ -24,14 +24,16 @@ def load_request_data(arg: str) -> Dict[str, Any]:
     """
     candidate = Path(arg)
 
-    if candidate.exists() and candidate.is_file():
-        with candidate.open("r", encoding="utf-8") as fh:
-            data = yaml.safe_load(fh) or {}
-        if not isinstance(data, dict):
-            raise RepoProvisionError("Request YAML must contain a mapping/object.")
-        return data
+    if not candidate.exists() or not candidate.is_file():
+        raise RepoProvisionError("Input must be a path to request.yml")
 
-    return {"repo_name": arg}
+    with candidate.open("r", encoding="utf-8") as fh:
+        data = yaml.safe_load(fh) or {}
+
+    if not isinstance(data, dict):
+        raise RepoProvisionError("Request YAML must contain a mapping/object.")
+
+    return data
 
 
 def extract_repo_name(request: Dict[str, Any]) -> str:
