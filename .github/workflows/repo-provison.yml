@@ -6,9 +6,8 @@
 name: Repo Provision
 
 on:
-  issues:
-    types:
-      - labeled
+  repository_dispatch:
+    types: [repo-approved]
 
 permissions:
   issues: write

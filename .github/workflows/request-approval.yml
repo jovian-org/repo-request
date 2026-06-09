@@ -65,7 +65,7 @@ jobs:
       - name: Approve request
         if: steps.command.outputs.action == 'approve'
         uses: actions/github-script@v7
-        with:   # Approve request
+        with:
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
@@ -73,15 +73,20 @@ jobs:
             const requester = context.payload.issue.user.login;
 
             await github.rest.issues.removeLabel({
-              owner,repo, issue_number, name: 'pending-approval'
+              owner, repo, issue_number, name: 'pending-approval'
             }).catch(() => {});
 
             await github.rest.issues.addLabels({
               owner, repo, issue_number, labels: ['approved']
             });
 
+            await github.rest.repos.createDispatchEvent({
+              owner, repo, event_type: 'repo-approved', client_payload: {issue_number, requester}
+            });
+
             await github.rest.issues.createComment({
-              owner, repo, issue_number, body: `✅ @${requester} your repository request has been approved.`
+              owner, repo, issue_number,
+              body: `✅ @${requester} your repository request has been approved.`
             });
 
       - name: Reject request
