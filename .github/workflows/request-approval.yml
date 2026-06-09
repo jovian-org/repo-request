@@ -3,7 +3,7 @@
 # 3. Apply: approved OR rejected
 # 4. Notify requester
 
-name: Repository Request Approval
+name: Request Approval
 
 on:
   issue_comment:

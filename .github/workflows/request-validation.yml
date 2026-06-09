@@ -2,7 +2,7 @@
 # 2. Validate policy
 # 3. Apply: pending-approval OR needs-changes
 
-name: Repository Request Validation
+name: Request Validation
 
 on:
   issues:

@@ -3,7 +3,7 @@
 # 3. Apply: provisioned
 # 4. Notify requester
 
-name: Approved Repository Provision
+name: Repo Provision
 
 on:
   issues:
