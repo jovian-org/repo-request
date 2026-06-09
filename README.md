@@ -8,7 +8,7 @@
 .github/FUNDING.yml -> Sponsorship links for open-source projects\
 .github/SECURITY.md -> Tells researchers how to report vulnerabilities and security support policy\
 .github/SUPPORT.md -> Explains where to ask questions and how to get help\
-.github/CONTRIBUTING.md -> Displayed when users create Issues or Pull Requests\
+.github/CONTRIBUTING.md -> Displayed when users create Issues or Pull Requests
 
 
 # GitHub Workflow File
@@ -16,30 +16,29 @@
 Has 3 main parts\
     1. name: human-readable name shown in GitHub Actions\
     2. on: defines the event that triggers the workflow\
-    3. jobs: the work to perform\
+    3. jobs: the work to perform
 
-Independent event-driven workflows\
-    Each one runs only when its own trigger matches\
+Independent event-driven workflows: Each one runs only when its own trigger matches
 
 
 # GitHub Workflow Job
 
 run -> tell GitHub exactly what command to execute\
-uses -> tell GitHub to execute a prebuilt Action\
+uses -> tell GitHub to execute a prebuilt Action
 
 # Command-Line Tool
 git clone ...\
 docker build ...\
-python parse_issue.py ...\
+python parse_issue.py ...
 
 # API
 
-Application Programming Interface is a way for one program to ask another program to do something. E.g. instead of clicking buttons in the GitHub website, your code sends a request to GitHub.\
+Application Programming Interface is a way for one program to ask another program to do something. E.g. instead of clicking buttons in the GitHub website, your code sends a request to GitHub.
 
 
 # REST API
 
-REST is a style of web API where everything is accessed through URLs and HTTP methods. Each resource (repository, issue, pull request, label, user) has a URL.\
+REST is a style of web API where everything is accessed through URLs and HTTP methods. Each resource (repository, issue, pull request, label, user) has a URL.
 
 
 # HTTP Methods
