@@ -85,7 +85,7 @@ repo-provision:\
 
 # ISSUE PARSING and VALIDATION (request-validation.yml)
 
-1. When an Issue is opened, GitHub starts validate-request.yml workflow
+1. validate-request.yml workflow is triggered when an issue is opened or edited
 2. Workflow extracts the issue body
 3. Workflow runs the parser (parse_issue.py) which inputs issue_body.txt and outputs request.yml as structured data
 4. Workflow runs the validator (validate_request.py) which reads request.yml and compares it against config/policy.yml to mark as 'pending-approval' or 'needs-changes'
@@ -95,19 +95,20 @@ repo-provision:\
 
 # ISSUE APPROVAL (request-approval.yml)
 
-1. Workflow receives a 'pending-approval' request and notifies approver
+1. Workflow is triggered receives a 'pending-approval' request and notifies approver
 2. Approver comments which creates an Issue Comment (each comment starts a workflow)
 3. If Issue Comment == /approve or /reject, GitHub starts request-approval.yml workflow
 4. Workflow verifies approver against config/approvers.yml
 5. Workflow verifies Issue's state to ensure it is 'pending-approval'
 6. If Comment = /approve AND User is approver AND Issue is pending-approval, 'approved' label is applied
-7. If Comment = /reject AND User is approver, 'rejected' label is applied
+7. If Comment = /reject AND User is approver, 'rejected' label is applied and requester is notified
 
 
 # REPO PROVISION (repo-provision.yml)
 
-1.
-2.
-3.
-4.
-
+1. repo-provision workflow is triggered when someone adds the approved label
+2. Workflow extracts the issue body
+3. Workflow runs the parser (parse_issue.py) which inputs issue_body.txt and outputs request.yml as structured data
+4. Workflow runs the provisioner (create_repo.py) which will read request.yml, get repo_name, authenticate using GH_PAT, call GitHub API to create the repo
+5. Workflow adds the 'provisioned' label to mark request as fulfilled
+6. Workflow notifies the requester with the repo URL
