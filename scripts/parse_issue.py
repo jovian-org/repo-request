@@ -5,53 +5,83 @@
 import sys
 import yaml
 
+EXPECTED_KEYS = [
+    "repo_name",
+    "business_purpose",
+    "owner_team",
+    "visibility",
+    "data_classification",
+    "additional_notes",
+]
+
+LABEL_MAP = {
+    "Repository name": "repo_name",
+    "Business purpose": "business_purpose",
+    "Owner team": "owner_team",
+    "Visibility": "visibility",
+    "Data classification": "data_classification",
+    "Additional notes": "additional_notes",
+}
+
+NO_RESPONSE_MARKERS = {"_No response_", "No response"}
+
+def normalize_value(value: str) -> str:
+    value = value.strip()
+    if value in NO_RESPONSE_MARKERS:
+        return ""       # Return empty string if no response
+    return value
+
 
 def parse_issue_body(text):
-    """
-    Convert key:value lines from the issue body into a dictionary.
-    """
-    
-    data = {}
+    data = {key: "" for key in EXPECTED_KEYS}
 
-    for line in text.splitlines():
-        line = line.strip()
-        
+    current_key = None
+    buffer = []
+
+    def flush():
+        nonlocal current_key, buffer        # Use current_key and buffer from enclosing function
+        if current_key is not None:
+            data[current_key] = normalize_value("\n".join(buffer))      # Store the value under the current field name
+        current_key = None      # Reset current_key and buffer after saving it
+        buffer = []
+
+    lines = text.splitlines()       # Break issue body into separate lines to inspect one line at a time
+
+    for raw_line in lines:
+        line = raw_line.strip()     # Remove leading and trailing whitespace from the line
+
         if not line:
-            continue        # Ignore blank lines
+            continue        # Skip blank lines
 
-        if ":" not in line:
-            continue        # Ignore malformed lines
+        heading_match = re.match(r"^#{1,6}\s+(.+)$", line)      # Check whether the line is a markdown heading
+        if heading_match:
+            flush()     # Save the previous field before moving on to the next one
+            label = heading_match.group(1).strip()      # Extract the heading text itself
+            current_key = LABEL_MAP.get(label)      # Convert the visible label into the stable YAML key
+            continue
 
-        key, value = line.split(":", 1)     # Split only on the first colon
+        if current_key is not None:
+            buffer.append(line)     # Collect value lines after a heading
 
-        data[key.strip()] = value.strip()
-
+    flush()     # Save the field collected in buffer to the YAML key
     return data
 
 
 def main():
-    """
-    Expected usage:
-        python parse_issue.py issue_body.txt request.yml
-    """
-
     if len(sys.argv) != 3:
-        print(
-            "Usage: parse_issue.py <issue_body.txt> <request.yml>",
-            file=sys.stderr
-        )
+        print("Usage: parse_issue.py <issue_body.txt> <request.yml>", file=sys.stderr)
         sys.exit(2)
 
     input_file = sys.argv[1]
     output_file = sys.argv[2]
-    
-    with open(input_file, "r", encoding="utf-8") as f:
-        issue_body = f.read()       # Read issue body extracted from GitHub
 
-    request = parse_issue_body(issue_body)      # Convert issue text into a dictionary
+    with open(input_file, "r", encoding="utf-8") as f:
+        issue_body = f.read()
+
+    request = parse_issue_body(issue_body)
 
     with open(output_file, "w", encoding="utf-8") as f:
-        yaml.safe_dump(request, f, sort_keys=False)     # Write structured YAML for the validator
+        yaml.safe_dump(request, f, sort_keys=False)
 
     print(f"Request written to {output_file}")
 
