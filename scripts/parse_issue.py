@@ -4,6 +4,7 @@
 
 import sys
 import yaml
+import re
 
 EXPECTED_KEYS = [
     "repo_name",
