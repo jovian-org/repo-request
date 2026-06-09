@@ -1,4 +1,4 @@
-# DEFINES: who can approve
+# Defines who can approve
 
 
 approvers:
@@ -7,3 +7,4 @@ approvers:
     - devops-team
   users:
     - octocat
+    - jovianheok
