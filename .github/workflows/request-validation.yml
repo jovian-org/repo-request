@@ -29,7 +29,9 @@ jobs:
         run: pip install pyyaml   # Install YAML parsing library
 
       - name: Extract issue body
-        run: cat <<'EOF' > issue_body.txt ${{ github.event.issue.body }}EOF 
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: printf '%s' "$ISSUE_BODY" > issue_body.txt
         # Save the GitHub issue body into a temporary file
           
       - name: Parse request
