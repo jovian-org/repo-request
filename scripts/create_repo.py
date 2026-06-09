@@ -1,16 +1,6 @@
 """
 Create a new private GitHub repository from a request file or repo name.
 """
-"""
-Usage:
-    python scripts/create_repo.py request.yml
-    python scripts/create_repo.py my-new-repo
-
-The script expects a fine-grained PAT in GH_PAT and uses the GitHub REST API
-endpoint POST /user/repos.
-"""
-
-from __future__ import annotations      # for type hints flexibility
 
 import sys      # for exiting with a status code
 from pathlib import Path        # for filesystem paths
