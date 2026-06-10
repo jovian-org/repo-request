@@ -38,6 +38,28 @@ jobs:
       - name: Parse request
         run: python scripts/parse_issue.py issue_body.txt request.yml
 
+
+      - name: Show request.yml
+        run: |
+          echo "===== request.yml ====="
+          cat request.yml
+
+      - name: Debug parsed YAML
+        run: |
+          python - <<'PY'
+          import yaml
+
+          with open("request.yml") as f:
+              data = yaml.safe_load(f)
+
+          print("TYPE:", type(data))
+          print("DATA:", data)
+
+          if isinstance(data, dict):
+              print("KEYS:", list(data.keys()))
+          PY
+
+
       - name: Create repository
         id: create_repo
         env:
