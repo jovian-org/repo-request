@@ -81,7 +81,7 @@ jobs:
             });
 
             await github.rest.repos.createDispatchEvent({
-              owner, repo, event_type: 'repo-approved', 
+              owner, repo, event_type: 'repo-provision', 
               client_payload: {issue_number, requester, issue_body: context.payload.issue.body}
             });
 
