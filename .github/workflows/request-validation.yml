@@ -64,7 +64,7 @@ jobs:
 
             await github.rest.issues.createComment({
               owner, repo, issue_number,
-              body: `@${requester} ✅ Validation passed. The request is now awaiting approval from @jovian-org/approver-team.`
+              body: `✅ @${requester} Validation passed. The request is now awaiting approval from @jovian-org/approver-team.`
             });
 
       - name: Mark request needs changes
@@ -87,7 +87,7 @@ jobs:
 
             await github.rest.issues.createComment({
               owner, repo, issue_number,
-              body: `@${requester} ❌ This repository request did not pass validation. 
+              body: `❌ @${requester} This repository request did not pass validation. 
               Please review the request and correct any policy violations, then edit the issue to trigger validation again.
               The request will remain in the \`needs-changes\` state until validation succeeds.`
             });
