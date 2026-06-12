@@ -1,7 +1,5 @@
-#!/usr/bin/env python3
-
 """
-Checks that a request from request.yml has all the required fields stated in config/policy
+Purpose: Check that a request from request.yml has all the required fields stated in config/policy
 """
 
 import sys           # Access command-line arguments and exit codes
@@ -11,26 +9,22 @@ from pathlib import Path  # Object-oriented file path handling
 
 def load_yaml(path):
     """
-    Load a YAML file and return it as a Python dictionary/object.
+    Purpose: Load a YAML file and return it as a Python dictionary/object.
     """
-    with open(path, "r", encoding="utf-8") as f:
-        # safe_load converts YAML into Python objects safely
-
+    with open(path, "r", encoding="utf-8") as f:        # safe_load converts YAML into Python objects safely
         return yaml.safe_load(f)
     
 
 def validate_request(request, policy):
     """
-    Validate a repository request against the repository policy.
+    Purpose: Validate a repository request against the repository policy.
     """
     errors = []
 
     required_fields = [
         "repo_name",
-        "business_purpose",
+        "repo_purpose",
         "owner_team",
-        "visibility",
-        "data_classification"
     ]
     for field in required_fields:
         if not request.get(field):      # Check that all required fields are present in the request
@@ -41,43 +35,18 @@ def validate_request(request, policy):
     repo_name = request["repo_name"]
     pattern = policy["repository"]["naming"]["pattern"]
     if not re.match(pattern, repo_name):        # Validate repo name
-        errors.append(
-            f"Repository name '{repo_name}' does not match naming policy"
-        )
+        errors.append(f"Repository name '{repo_name}' does not match naming policy")
 
-    allowed_visibility = policy["repository"]["visibility"]["allowed"]
-    if request["visibility"] not in allowed_visibility:     # Validate repo visibility
-        errors.append(
-            f"Visibility '{request['visibility']}' is not allowed"
-        )
-
-    if policy["repository"]["owner_team_allowlist"]:    # Validate owner team if the policy requires one
-        allowed_teams = policy["repository"].get("owner_team_allowlist", [])
-        # Get list of allowed owner teams if configured. If not present in the YAML, default to []
-        
-        if allowed_teams and request["owner_team"] not in allowed_teams:
-        # Only validate if a whitelist exists (empty list means "accept any team")
-        
-            errors.append(
-                f"Owner team '{request['owner_team']}' is not recognized"
-            )
+    allowlist = policy["repository"].get("owner_team_allowlist", [])
+    if allowlist and request["owner_team"] not in allowlist:        # If allowlist is defined in policy, request's owner-team must be in allowlist
+        errors.append(f"Owner team '{request['owner_team']}' is not recognized")
 
     return len(errors) == 0, errors     # Validation succeeds if no errors were collected
 
 
 def main():
     """
-    Main program entry point.
-
-    Expected usage:
-        python validate_request.py request.yml policy.yml
-    
-    sys.argv contains:
-        sys.argv[0] = script name
-        sys.argv[1] = request YAML
-        sys.argv[2] = policy YAML
-
-    Therefore total length should be 3
+    Purpose: Main program entry point
     """
     if len(sys.argv) != 3:
         print(

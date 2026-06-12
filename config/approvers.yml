@@ -1,10 +1,7 @@
-# Defines who can approve
-
+# Define who can approve
 
 approvers:
   teams:
-    - platform-team
+    - approver-team
     - devops-team
-  users:
-    - octocat
-    - jovianheok
+  users: []

@@ -1,7 +1,4 @@
-# 1. Verify approver
-# 2. Verify issue state
-# 3. Apply: approved OR rejected
-# 4. Notify requester
+# Workflow: Verify approver -> Verify issue state -> Apply approved OR rejected -> Notify requester
 
 name: Request Approval
 
@@ -50,6 +47,8 @@ jobs:
       - name: Verify approver
         env:
           COMMENTER: ${{ github.event.comment.user.login }}   # Stores the commenter's username as an environment variable
+          ORG_NAME: jovian-org
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: python scripts/verify_approver.py    # Verify the commenter is listed in config/approvers.yml
 
       - name: Check request state

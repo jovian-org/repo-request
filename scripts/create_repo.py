@@ -1,5 +1,5 @@
 """
-Create a new private GitHub repository from a request file or repo name.
+Purpose: Create a new private GitHub repository from a request file or repo name
 """
 
 import sys      # for exiting with a status code
@@ -8,11 +8,9 @@ from typing import Any, Dict, Tuple # type hints
 
 import requests     # for sending HTTP requests to GitHub
 import yaml     # for reading request.yml file
+import os
 
 from github_auth import GitHubAuthError, get_github_headers
-
-GITHUB_API_URL = "https://api.github.com/user/repos"    # GitHub endpoint to create repo under authenticcated user
-
 
 class RepoProvisionError(RuntimeError):
     """Raised when repository provisioning fails."""
@@ -20,7 +18,7 @@ class RepoProvisionError(RuntimeError):
 
 def load_request_data(arg: str) -> Dict[str, Any]:
     """
-    Load request data from a YAML file path or treat the argument as a raw repo name.
+    Purpose: Load request data from a YAML file path
     """
     candidate = Path(arg)
 
@@ -38,7 +36,7 @@ def load_request_data(arg: str) -> Dict[str, Any]:
 
 def extract_repo_name(request: Dict[str, Any]) -> str:
     """
-    Extract and validate the repository name from the request payload.
+    Purpose: Extract and validate the repository name from the request payload
     """
     repo_name = request.get("repo_name")
     if not isinstance(repo_name, str) or not repo_name.strip():
@@ -48,8 +46,10 @@ def extract_repo_name(request: Dict[str, Any]) -> str:
 
 def create_repository(repo_name: str) -> Tuple[str, str]:
     """
-    Create the repository and return (html_url, full_name).
+    Purpose: Create the repository and return (html_url, full_name).
     """
+    org_name = os.environ["ORG_NAME"]
+    github_api_url = f"https://api.github.com/orgs/{org_name}/repos"    # GitHub endpoint to create repo under organization
     headers = get_github_headers()      # headers to attach to the API request
     payload = {
         "name": repo_name,      # uses the repo name from the request
@@ -59,12 +59,13 @@ def create_repository(repo_name: str) -> Tuple[str, str]:
 
     try:
         response = requests.post(       # Send an HTTP POST request to create
-            GITHUB_API_URL,    # GitHub endpoint for creating repo
+            github_api_url,    # GitHub endpoint for creating repo
             headers=headers,    # attach authentication headers
             json=payload,       # send the payload as JSON
             timeout=30      # wait at most 30 seconds
             )
         response.raise_for_status()     # Raise an exception if there is an error
+
     except requests.HTTPError as exc:       # Catch GitHub API errors
         detail = ""
         try:
@@ -74,6 +75,7 @@ def create_repository(repo_name: str) -> Tuple[str, str]:
         raise RepoProvisionError(
             f"GitHub API rejected repository creation for '{repo_name}'. {detail}"
         ) from exc
+    
     except requests.RequestException as exc:        # Catch lower-level problems
         raise RepoProvisionError(f"Failed to contact GitHub API: {exc}") from exc
 

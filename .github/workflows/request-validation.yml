@@ -1,6 +1,4 @@
-# 1. Parse request
-# 2. Validate policy
-# 3. Apply: pending-approval OR needs-changes
+# Workflow: Parse request -> Validate policy -> Apply pending-approval OR needs-changes
 
 name: Request Validation
 
@@ -31,12 +29,10 @@ jobs:
       - name: Extract issue body
         env:
           ISSUE_BODY: ${{ github.event.issue.body }}
-        run: printf '%s' "$ISSUE_BODY" > issue_body.txt
-        # Save the GitHub issue body into a temporary file
+        run: printf '%s' "$ISSUE_BODY" > issue_body.txt   # Save the GitHub issue body into a temporary file
           
       - name: Parse request
-        run: python scripts/parse_issue.py issue_body.txt request.yml 
-        # Convert the issue body into request.yml using Python CLI Tool
+        run: python scripts/parse_issue.py issue_body.txt request.yml   # Convert the issue body into request.yml using Python CLI Tool
 
       - name: Show parsed request
         run: |
@@ -45,10 +41,8 @@ jobs:
 
       - name: Validate request
         id: validate    # lets later steps inspect the validation result
-        continue-on-error: true
-        # prevents GitHub from aborting the workflow when validation fails, to handle the failure by applying labels
-        run: python scripts/validate_request.py request.yml config/policy.yml
-        # Run policy validation against the parsed request
+        continue-on-error: true   # prevents GitHub from aborting the workflow when validation fails, to handle the failure by applying labels
+        run: python scripts/validate_request.py request.yml config/policy.yml   # Run policy validation against the parsed request
 
       - name: Mark request ready
         if: steps.validate.outcome == 'success'   # only run this step if validation passed
@@ -58,28 +52,20 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const issue_number = context.issue.number;
-            const approver = 'jovianheok'; // MVP approver from config/approvers.yml
+            const requester = context.payload.issue.user.login
 
             await github.rest.issues.removeLabel({
               owner, repo, issue_number, name: 'needs-changes'
             }).catch(() => {});
-            // Remove any previous needs-changes label
 
             await github.rest.issues.addLabels({
               owner, repo, issue_number, labels: ['pending-approval']
             });
-            // Mark the request as ready for approval
-
-            await github.rest.issues.addAssignees({
-              owner, repo, issue_number, assignees: [approver]
-            }).catch(() => {});
-            // Assign approver to the issue
 
             await github.rest.issues.createComment({
-              owner, repo, issue_number, body: `@${approver} this request is ready for approval.`
+              owner, repo, issue_number,
+              body: `@${requester} ✅ Validation passed. The request is now awaiting approval from @jovian-org/approver-team.`
             });
-            // Send a notification to that user identified by the username
-
 
       - name: Mark request needs changes
         if: steps.validate.outcome == 'failure'
@@ -89,6 +75,7 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const issue_number = context.issue.number;
+            const requester = context.payload.issue.user.login
 
             await github.rest.issues.removeLabel({
               owner, repo, issue_number, name: 'pending-approval'
@@ -99,8 +86,10 @@ jobs:
             });
 
             await github.rest.issues.createComment({
-              owner, repo, issue_number, 
-              body: '❌ Validation failed. Please review the repository request and correct any policy violations, then edit the issue to trigger validation again.'
+              owner, repo, issue_number,
+              body: `@${requester} ❌ This repository request did not pass validation. 
+              Please review the request and correct any policy violations, then edit the issue to trigger validation again.
+              The request will remain in the \`needs-changes\` state until validation succeeds.`
             });
 
       - name: Debug output

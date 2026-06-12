@@ -1,7 +1,5 @@
-#!/usr/bin/env python3
-
 """
-Parse a GitHub issue body from issue_body.txt into request.yml
+Purpose: Parse a GitHub issue body from issue_body.txt into request.yml
 """
 
 import sys
@@ -10,19 +8,15 @@ import re
 
 EXPECTED_KEYS = [
     "repo_name",
-    "business_purpose",
+    "repo_purpose",
     "owner_team",
-    "visibility",
-    "data_classification",
     "additional_notes",
 ]
 
 LABEL_MAP = {
     "Repository name": "repo_name",
-    "Business purpose": "business_purpose",
+    "Repository purpose": "repo_purpose",
     "Owner team": "owner_team",
-    "Visibility": "visibility",
-    "Data classification": "data_classification",
     "Additional notes": "additional_notes",
 }
 

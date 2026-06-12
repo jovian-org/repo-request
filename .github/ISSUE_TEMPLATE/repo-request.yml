@@ -1,5 +1,4 @@
-# repo-request.yml defines the form that GitHub shows when a user clicks "New Issue"
-
+# Purpose: Define the form that GitHub shows when a user clicks "New Issue"
 
 name: Repository Request
 description: Request a new GitHub repository
@@ -7,26 +6,19 @@ title: "[Repo Request]: "
 labels:
   - pending-approval
 body:
-  # Single-line text input field
   - type: input
-
     id: repo_name
     attributes:
       label: Repository name
       description: Use lowercase letters, numbers, and hyphens only.
-
-      #Example value dsiplayed before user enters text
       placeholder: my-project-service
-
     validations:
       required: true
 
-  # Multi-line text area
   - type: textarea
-
-    id: business_purpose
+    id: repo_purpose
     attributes:
-      label: Business purpose
+      label: Repository purpose
       description: Why does this repository need to exist?
       placeholder: Describe the project or service.
     validations:
@@ -37,31 +29,7 @@ body:
     attributes:
       label: Owner team
       description: Team responsible for maintaining this repository.
-      placeholder: platform-team
-    validations:
-      required: true
-
-  # Dropdown selection field
-  - type: dropdown
-    id: visibility
-    attributes:
-      label: Visibility
-      options:
-        - private
-        - internal
-        - public
-    validations:
-      required: true
-
-  - type: dropdown
-    id: data_classification
-    attributes:
-      label: Data classification
-      options:
-        - public
-        - internal
-        - confidential
-        - restricted
+      placeholder: Assign a team (approver-team or devops-team for now)
     validations:
       required: true
 
@@ -70,7 +38,5 @@ body:
     attributes:
       label: Additional notes
       description: Anything else approvers should know.
-    
-    # User may leave this field empty
     validations:
       required: false
