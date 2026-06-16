@@ -4,7 +4,6 @@ name: Repository Request
 description: Request a new GitHub repository
 title: "[Repo Request]: "
 labels:
-  - pending-approval
 body:
   - type: input
     id: repo_name
