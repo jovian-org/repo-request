@@ -12,11 +12,11 @@ permissions:
 
 jobs:
   validate:
-    if: >   # Run only for issues that have not been approved or rejected
+    if: >   # Run only for issues that have not been approved
       github.event.issue.pull_request == null &&
       !contains(github.event.issue.labels.*.name, 'approved') &&
       !contains(github.event.issue.labels.*.name, 'provisioned') &&
-      !contains(github.event.issue.labels.*.name, 'rejected')
+  
     runs-on: ubuntu-latest    # Use a GitHub-hosted Ubuntu runner
     steps:
       - name: Checkout repository
@@ -58,8 +58,8 @@ jobs:
             const issue_number = context.issue.number;
             const requester = context.payload.issue.user.login
 
-            await github.rest.issues.removeLabel({
-              owner, repo, issue_number, name: 'needs-changes'
+            await github.rest.issues.removeAllLabels({
+              owner, repo, issue_number
             }).catch(() => {});
 
             await github.rest.issues.addLabels({
