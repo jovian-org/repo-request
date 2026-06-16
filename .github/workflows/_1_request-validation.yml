@@ -80,7 +80,7 @@ jobs:
             await github.rest.issues.createComment({
               owner, repo, issue_number,
               body:`✅ @${requester} Validation passed. Your request is awaiting approval.`
-
+            });
 
       - name: Post approval comment
         uses: actions/github-script@v7
