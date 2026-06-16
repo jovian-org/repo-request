@@ -15,7 +15,7 @@ jobs:
     if: >   # Run only for issues that have not been approved
       github.event.issue.pull_request == null &&
       !contains(github.event.issue.labels.*.name, 'approved') &&
-      !contains(github.event.issue.labels.*.name, 'provisioned') &&
+      !contains(github.event.issue.labels.*.name, 'provisioned')
   
     runs-on: ubuntu-latest    # Use a GitHub-hosted Ubuntu runner
     steps:
