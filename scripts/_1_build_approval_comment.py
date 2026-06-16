@@ -8,8 +8,7 @@ import sys
 with open(sys.argv[1]) as f:
     request = yaml.safe_load(f)
 
-print(
-f"""## Repository Request
+body = f"""## Repository Request
 
 **Repository Name**
 {request.get('repo_name', '')}
@@ -23,8 +22,15 @@ f"""## Repository Request
 **Additional Notes**
 {request.get('additional_notes') or 'None'}
 
-**Reply with:**
-- /approve
-- /reject
+**Approval Instructions**
+
+To approve this request, reply with:
+`/approve`
+
+To reject this request, reply with:
+`/reject`
+
+Then provide the reason for rejection below the command.
 """
-)
+
+print(body)
