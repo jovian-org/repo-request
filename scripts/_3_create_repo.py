@@ -10,7 +10,7 @@ import requests     # for sending HTTP requests to GitHub
 import yaml     # for reading request.yml file
 import os
 
-from scripts._3_github_auth import GitHubAuthError, get_github_headers
+from _3_github_auth import GitHubAuthError, get_github_headers
 
 class RepoProvisionError(RuntimeError):
     """Raised when repository provisioning fails."""

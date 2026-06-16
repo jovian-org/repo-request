@@ -23,7 +23,7 @@ f"""## Repository Request
 **Additional Notes**
 {request.get('additional_notes') or 'None'}
 
-Reply with:
+**Reply with:**
 - /approve
 - /reject
 """
