@@ -12,7 +12,11 @@ permissions:
 
 jobs:
   validate:
-    if: github.event.issue.pull_request == null   # Run only for issues, not pull requests
+    if: >   # Run only for issues that have not been approved or rejected
+      github.event.issue.pull_request == null &&
+      !contains(github.event.issue.labels.*.name, 'approved') &&
+      !contains(github.event.issue.labels.*.name, 'provisioned') &&
+      !contains(github.event.issue.labels.*.name, 'rejected')
     runs-on: ubuntu-latest    # Use a GitHub-hosted Ubuntu runner
     steps:
       - name: Checkout repository
@@ -62,9 +66,28 @@ jobs:
               owner, repo, issue_number, labels: ['pending-approval']
             });
 
+      - name: Build approval comment
+        run: python scripts/build_approval_comment.py request.yml > approval_comment.txt
+
+      - name: Post approval comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');   // Node.js filesystem module to read files
+            const approvalComment = fs.readFileSync('approval_comment.txt', 'utf8');    // Read the generated approval comment
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = context.issue.number;
+            const requester = context.payload.issue.user.login;
+            
             await github.rest.issues.createComment({
               owner, repo, issue_number,
-              body: `✅ @${requester} Validation passed. The request is now awaiting approval from @jovian-org/approver-team.`
+              body:`✅ @${requester} Validation passed. 
+              
+              @jovianheok Please review this repository request.
+
+              ${approvalComment}`
             });
 
       - name: Mark request needs changes

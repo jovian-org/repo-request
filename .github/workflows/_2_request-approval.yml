@@ -12,10 +12,14 @@ permissions:
 
 jobs:
   process-request:
-    if: |
-      github.event.issue.pull_request == null && (
+    if: >   # to prevent conflicting or repeated /approve and /reject comments
+      github.event.issue.pull_request == null &&
+      !contains(github.event.issue.labels.*.name, 'approved') &&
+      !contains(github.event.issue.labels.*.name, 'rejected') &&
+      (
         startsWith(github.event.comment.body, '/approve') ||
-        startsWith(github.event.comment.body, '/reject'))
+        startsWith(github.event.comment.body, '/reject')
+      )
 
     runs-on: ubuntu-latest
 
