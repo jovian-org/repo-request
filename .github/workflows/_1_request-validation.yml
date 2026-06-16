@@ -69,6 +69,19 @@ jobs:
       - name: Build approval comment
         run: python scripts/_1_build_approval_comment.py request.yml > approval_comment.txt
 
+      - name: Inform requester
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = context.issue.number;
+            const requester = context.payload.issue.user.login;
+            await github.rest.issues.createComment({
+              owner, repo, issue_number,
+              body:`✅ @${requester} Validation passed. Your request is awaiting approval.`
+
+
       - name: Post approval comment
         uses: actions/github-script@v7
         with:
@@ -83,9 +96,7 @@ jobs:
             
             await github.rest.issues.createComment({
               owner, repo, issue_number,
-              body:`✅ @${requester} Validation passed. 
-              
-              @jovianheok Please review this repository request.
+              body:`@jovianheok Please review this repository request.
 
               ${approvalComment}`
             });
