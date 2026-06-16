@@ -36,7 +36,7 @@ jobs:
         run: printf '%s' "$ISSUE_BODY" > issue_body.txt   # Save the GitHub issue body into a temporary file
           
       - name: Parse request
-        run: python scripts/parse_issue.py issue_body.txt request.yml   # Convert the issue body into request.yml using Python CLI Tool
+        run: python scripts/_1_parse_issue.py issue_body.txt request.yml   # Convert the issue body into request.yml using Python CLI Tool
 
       - name: Show parsed request
         run: |
@@ -46,7 +46,7 @@ jobs:
       - name: Validate request
         id: validate    # lets later steps inspect the validation result
         continue-on-error: true   # prevents GitHub from aborting the workflow when validation fails, to handle the failure by applying labels
-        run: python scripts/validate_request.py request.yml config/policy.yml   # Run policy validation against the parsed request
+        run: python scripts/_1_validate_request.py request.yml config/policy.yml   # Run policy validation against the parsed request
 
       - name: Mark request ready
         if: steps.validate.outcome == 'success'   # only run this step if validation passed
@@ -67,7 +67,7 @@ jobs:
             });
 
       - name: Build approval comment
-        run: python scripts/build_approval_comment.py request.yml > approval_comment.txt
+        run: python scripts/_1_build_approval_comment.py request.yml > approval_comment.txt
 
       - name: Post approval comment
         uses: actions/github-script@v7

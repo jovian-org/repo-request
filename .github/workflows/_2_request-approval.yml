@@ -55,7 +55,7 @@ jobs:
           COMMENTER: ${{ github.event.comment.user.login }}   # Stores the commenter's username as an environment variable
           ORG_NAME: jovian-org
           GH_PAT: ${{ secrets.GH_PAT }}
-        run: python scripts/verify_approver.py    # Verify the commenter is listed in config/approvers.yml
+        run: python scripts/_2_verify_approver.py    # Verify the commenter is listed in config/approvers.yml
 
       
       - name: Reject unauthorized approver

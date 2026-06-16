@@ -33,7 +33,7 @@ jobs:
         run: printf '%s' "$ISSUE_BODY" > issue_body.txt
 
       - name: Parse request
-        run: python scripts/parse_issue.py issue_body.txt request.yml
+        run: python scripts/_1_parse_issue.py issue_body.txt request.yml
 
       - name: Create repository
         id: create_repo
@@ -41,7 +41,7 @@ jobs:
           ORG_NAME: jovian-org
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
-          repo_url="$(python scripts/create_repo.py request.yml)"
+          repo_url="$(python scripts/_3_create_repo.py request.yml)"
           echo "repo_url=$repo_url" >> "$GITHUB_OUTPUT"
 
       - name: Add provisioned label
