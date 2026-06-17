@@ -1,8 +1,3 @@
 # config.yml is a special filename that GitHub recognises to configure the Issue creation page
 
 blank_issues_enabled: false
-
-contact_links:
-  - name: Repository Creation Policy
-    url: https://your-docs-url
-    about: Read the governance policy before submitting a request.
