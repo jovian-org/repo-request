@@ -4,7 +4,7 @@ name: Repo Provision
 
 on:
   repository_dispatch:
-    types: [repo-provision]
+    types: [Repo Provision]
 
 permissions:
   issues: write
