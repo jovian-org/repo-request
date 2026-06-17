@@ -22,6 +22,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4   # Download repository onto runner
 
+      - name: Enforce issue title
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = context.issue.number;
+            const desiredTitle = '[Repo Request]';
+            
+            if (context.payload.issue.title != desiredTitle) {
+              await github.rest.issues.update({owner, repo, issue_number, title: desiredTitle})}
+
       - name: Set up Python
         uses: actions/setup-python@v5   # Install/configure Python
         with: 
@@ -66,10 +78,12 @@ jobs:
               owner, repo, issue_number, labels: ['pending-approval']
             });
 
-      - name: Build approval comment
+      - name: Build approved comment
+        if: steps.validate.outcome == 'success'
         run: python scripts/_1_build_approval_comment.py request.yml > approval_comment.txt
 
       - name: Inform requester
+        if: steps.validate.outcome == 'success'
         uses: actions/github-script@v7
         with:
           script: |
@@ -83,6 +97,7 @@ jobs:
             });
 
       - name: Post approval comment
+        if: steps.validate.outcome == 'success'
         uses: actions/github-script@v7
         with:
           script: |
