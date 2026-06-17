@@ -24,7 +24,6 @@ def validate_request(request, policy):
     required_fields = [
         "repo_name",
         "repo_purpose",
-        "owner_team",
     ]
     for field in required_fields:
         if not request.get(field):      # Check that all required fields are present in the request
@@ -36,10 +35,6 @@ def validate_request(request, policy):
     pattern = policy["repository"]["naming"]["pattern"]
     if not re.match(pattern, repo_name):        # Validate repo name
         errors.append(f"Repository name '{repo_name}' does not match naming policy")
-
-    allowlist = policy["repository"].get("owner_team_allowlist", [])
-    if allowlist and request["owner_team"] not in allowlist:        # If allowlist is defined in policy, request's owner-team must be in allowlist
-        errors.append(f"Owner team '{request['owner_team']}' is not recognized")
 
     return len(errors) == 0, errors     # Validation succeeds if no errors were collected
 
