@@ -1,16 +1,6 @@
 # Defines what is allowed
 
-requesters:
-  allowed_groups:
-    - org-members
-
 repository:
   naming:
     pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"   # Repository names must contain lowercase letters and digits, optionally contain hyphens and not start/end with a hyphen
 
-  owner_team_allowlist:
-    - approver-team
-    - devops-team
-
-governance:
-  org_owners_exempt: false    # Org owners must follow these rules too
