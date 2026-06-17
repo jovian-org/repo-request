@@ -2,7 +2,7 @@
 
 name: Repository Request
 description: Request a new GitHub repository
-title: "[Repo Request]: "
+title: "[Repo Request]"
 body:
   - type: input
     id: repo_name
@@ -19,15 +19,6 @@ body:
       label: Repository purpose
       description: Why does this repository need to exist?
       placeholder: Describe the project or service.
-    validations:
-      required: true
-
-  - type: input
-    id: owner_team
-    attributes:
-      label: Owner team
-      description: Team responsible for maintaining this repository.
-      placeholder: Assign a team (approver-team or devops-team for now)
     validations:
       required: true
 
